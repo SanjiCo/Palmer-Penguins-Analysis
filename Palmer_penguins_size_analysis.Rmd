@@ -1,0 +1,165 @@
+---
+title: "Palmer Penguins Size Analysis: A Comprehensive Study"
+author: "Ismail Cakil"
+date: "March 2025"
+output: html_document
+---
+
+## Introduction
+This project explores the Palmer Penguins dataset to investigate size differences across species (Adélie, Chinstrap, Gentoo) and sexes. Conducted as part of the Google Data Analytics Certificate, it showcases skills in data cleaning, statistical analysis, and visualization using R. The dataset, collected from penguins in the Palmer Archipelago, Antarctica, includes measurements like bill length, flipper length, and body mass.
+
+### Research Questions
+1. How do body measurements (bill length, flipper length, body mass) vary across penguin species?
+2. Does sex influence these measurements within each species?
+3. Are observed differences statistically significant?
+
+---
+
+## Setup
+We begin by loading necessary R packages and the dataset.
+
+```{r setup, message=FALSE}
+library(palmerpenguins)  # Dataset
+library(dplyr)          # Data manipulation
+library(ggplot2)        # Visualization
+library(stats)          # Statistical tests
+data(penguins)          # Load the data
+```
+
+---
+
+## Data Exploration and Cleaning
+First, we explore the dataset structure and clean it for analysis.
+
+```{ dair exploration}
+# Dataset structure
+str(penguins)
+
+# Check for missing values
+colSums(is.na(penguins))
+```
+
+### Cleaning Steps
+- **Missing Values:** Remove rows with NA values.
+- **Column Selection:** Focus on species, sex, and body measurements.
+
+```{r cleaning}
+# Clean the data
+penguins_clean <- penguins %>%
+  na.omit() %>%
+  select(species, bill_length_mm, flipper_length_mm, body_mass_g, sex)
+
+# Verify cleaned data
+head(penguins_clean)
+summary(penguins_clean)
+```
+
+**Notes:** After cleaning, we retain 333 observations with no missing values, focusing on key variables.
+
+---
+
+## Data Analysis
+We analyze average measurements and test for statistical significance.
+
+### Summary Statistics
+Calculate means for each measurement by species and sex.
+
+```{r summary}
+# Summary statistics
+summary_stats <- penguins_clean %>%
+  group_by(species, sex) %>%
+  summarise(
+    avg_bill_length = mean(bill_length_mm),
+    avg_flipper_length = mean(flipper_length_mm),
+    avg_body_mass = mean(body_mass_g),
+    n = n(),
+    .groups = "drop"
+  )
+
+# Display results
+summary_stats
+```
+
+### Statistical Testing
+Perform t-tests to assess if sex-based differences in body mass are significant within each species.
+
+```{r t-test}
+# T-tests for body mass by sex within each species
+t_test_adelie <- t.test(body_mass_g ~ sex, data = penguins_clean[penguins_clean$species == "Adelie", ])
+t_test_chinstrap <- t.test(body_mass_g ~ sex, data = penguins_clean[penguins_clean$species == "Chinstrap", ])
+t_test_gentoo <- t.test(body_mass_g ~ sex, data = penguins_clean[penguins_clean$species == "Gentoo", ])
+
+# Results
+t_test_adelie
+t_test_chinstrap
+t_test_gentoo
+```
+
+**Findings:**
+- Gentoo penguins have the largest average measurements across all metrics.
+- Males consistently show higher averages than females.
+- T-tests reveal significant sex differences (p < 0.05) in body mass for all species.
+
+---
+
+## Visualization
+Visualizations help interpret the data effectively.
+
+### Scatter Plot: Bill Length vs. Flipper Length
+```{r scatter, fig.width=8, fig.height=6}
+ggplot(penguins_clean, aes(x = bill_length_mm, y = flipper_length_mm, color = species, shape = sex)) +
+  geom_point(size = 3) +
+  labs(
+    title = "Bill Length vs. Flipper Length by Species and Sex",
+    x = "Bill Length (mm)",
+    y = "Flipper Length (mm)"
+  ) +
+  theme_minimal()
+```
+
+**Insight:** Gentoo penguins cluster in the upper-right, indicating larger sizes, with males slightly separated from females.
+
+### Box Plot: Body Mass Distribution
+```{r boxplot, fig.width=8, fig.height=6}
+ggplot(penguins_clean, aes(x = species, y = body_mass_g, fill = sex)) +
+  geom_boxplot() +
+  labs(
+    title = "Body Mass Distribution by Species and Sex",
+    x = "Species",
+    y = "Body Mass (g)"
+  ) +
+  theme_minimal()
+```
+
+**Insight:** Gentoo males have the highest median body mass, with noticeable variation across species.
+
+### Facet Plot: Species-Specific Differences
+```{r facet, fig.width=10, fig.height=6}
+ggplot(penguins_clean, aes(x = bill_length_mm, y = flipper_length_mm, color = sex)) +
+  geom_point(size = 2) +
+  facet_wrap(~ species) +
+  labs(
+    title = "Size Differences by Species and Sex",
+    x = "Bill Length (mm)",
+    y = "Flipper Length (mm)"
+  ) +
+  theme_minimal()
+```
+
+**Insight:** Facets highlight distinct measurement ranges for each species, with sex differences most pronounced in Gentoo.
+
+---
+
+## Conclusion
+This comprehensive analysis of the Palmer Penguins dataset reveals clear patterns in body measurements:
+- **Species Differences:** Gentoo penguins exhibit the largest bill length (avg. ~47-50 mm), flipper length (avg. ~214-217 mm), and body mass (avg. ~4700-5500 g), followed by Chinstrap and Adelie.
+- **Sex Differences:** Males consistently have larger measurements than females across all species, with body mass differences statistically significant (p < 0.001 for Gentoo and Adelie, p < 0.05 for Chinstrap).
+- **Implications:** These findings suggest sexual dimorphism and species-specific adaptations, potentially linked to ecological roles in the Palmer Archipelago.
+
+This project demonstrates proficiency in R programming, data cleaning with `dplyr`, statistical analysis with t-tests, and visualization with `ggplot2`, aligning with the Google Data Analytics Certificate’s curriculum. Future work could explore correlations between measurements or environmental factors like island location.
+
+---
+
+## References
+- Palmer Penguins dataset: Horst AM, Hill AP, Gorman KB (2020). *palmerpenguins: Palmer Archipelago (Antarctica) penguin data*. R package version 0.1.0.
+- Google Data Analytics Certificate, Coursera.
